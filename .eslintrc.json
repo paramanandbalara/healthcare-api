@@ -10,7 +10,7 @@
 "globals": {
     "readDb": true,
     "writeDb": true,
-    "logger" : true
+    "log" : true
   },
   "rules": {
     "indent": ["error", 4],

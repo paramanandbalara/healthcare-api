@@ -1,45 +1,33 @@
 'use strict';
 
 const http = require('http');
+const socketIo = require('socket.io');
 
-/**
- * Export a function that creates an HTTP server.
- *
- * @param {Express.Application} app - The Express application.
- * @param {Function} onServerClose - A callback function to handle server close events.
- * @returns {http.Server} - The created HTTP server.
- */
 module.exports = function createHttpServer(app, onServerClose) {
-    // Check if onServerClose is a function, throw an error if not
     if (typeof onServerClose !== 'function') {
         throw new Error('onServerClose must be a function');
     }
 
-    // Normalize the port by parsing it as an integer or returning false if invalid
     const port = normalizePort(process.env.PORT || '3000');
     app.set('port', port);
 
-    // Create an HTTP server using the Express app
     const server = http.createServer(app);
-
-    // Listen on the specified port
     server.listen(port);
-
-    // Event listener for server errors
     server.on('error', onError);
-
-    // Event listener for server listening
     server.on('listening', onListening);
-
-    // Event listener for server close
     server.on('close', onServerClose);
 
-    /**
-	 * Normalize a port into a number, string, or false.
-	 *
-	 * @param {string} val - The port value to normalize.
-	 * @returns {number|string|false} - The normalized port value.
-	 */
+    const io = socketIo(server, {
+        cors: {
+            origin: "*",  // Allow any origin to access. Adjust this for security reasons.
+            methods: ["GET", "POST"],
+            allowedHeaders: ["my-custom-header"],
+            credentials: true
+        }
+    });
+
+    return { server, io };
+
     function normalizePort(val) {
         const port = parseInt(val, 10);
         if (isNaN(port)) {
@@ -51,11 +39,6 @@ module.exports = function createHttpServer(app, onServerClose) {
         return false; // Invalid port value
     }
 
-    /**
-	 * Event listener for HTTP server "error" event.
-	 *
-	 * @param {Error} error - The error object.
-	 */
     function onError(error) {
         if (error.syscall !== 'listen') {
             throw error;
@@ -75,15 +58,10 @@ module.exports = function createHttpServer(app, onServerClose) {
         }
     }
 
-    /**
-	 * Event listener for HTTP server "listening" event.
-	 */
     function onListening() {
         const addr = server.address();
         const bind =
 			typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
         console.log('Listening on ' + bind);
     }
-
-    return server;
 };
