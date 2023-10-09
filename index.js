@@ -1,31 +1,32 @@
 'use strict';
-// const gracefulShutDownCalled = false;
 
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
-// Commenting below for now till better handling for unhandledRejection/uncaughtException is written
-// process.on('uncaughtException', handleUncaughtException);
-// process.on('unhandledRejection', handleUnhandledRejection);
-
 const app = require('./app');
-const serve = require('./setup/server');
+const { server, io } = require('./setup/server')(app, onServerClosed);
 
-const httpServer = serve(app, onServerClosed);
+io.on('connection', (socket) => {
+    console.log('User connected');
+
+    socket.on('send_message', (data) => {
+        console.log('Received message', data);
+        io.emit('receive_message', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+});
 
 async function gracefulShutdown(signal = null) {
     signal !== null && console.log(`Received ${signal}.`);
     console.log('Gracefully shutting down');
     try {
-        httpServer.close();
+        server.close();
     } catch (err) {
-        console.error(`Error in closing httpServer ${err}`);
-        try {
-            await onServerClosed();
-        } catch (err) {
-            console.error(`onServerClosed err ${err}`);
-            process.exit(-1);
-        }
+        console.error(`Error in closing server ${err}`);
+        await onServerClosed();
     }
 }
 

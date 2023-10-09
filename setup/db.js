@@ -23,9 +23,9 @@ module.exports = async function configureDatabaseConnections(env) {
     try {
     // Attempt to establish a connection to the write database
         await writeDb.getConnection();
-        logger.info('Write database connected successfully');
+        log.info('Write database connected successfully');
     } catch (error) {
-        logger.error('Error connecting to write database:', error.message);
+        log.error('Error connecting to write database:', error.message);
     }
 
     // If in production environment, configure database credentials for reading
@@ -40,9 +40,9 @@ module.exports = async function configureDatabaseConnections(env) {
     try {
     // Attempt to establish a connection to the read database
         await readDb.getConnection();
-        logger.info('Read database connected successfully');
+        log.info('Read database connected successfully');
     } catch (error) {
-        logger.error('Error connecting to read database:', error.message);
+        log.error('Error connecting to read database:', error.message);
     }
 
     // Define global variables for read and write databases

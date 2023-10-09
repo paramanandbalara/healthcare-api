@@ -1,8 +1,8 @@
 const winston = require('winston');
 
 module.exports = function initializeLogger(){
-    // Create a Winston logger instance
-    const logger = winston.createLogger({
+    // Create a Winston log instance
+    const log = winston.createLogger({
         level: 'info', // Adjust the log level as needed
         format: winston.format.simple(),
         transports: [
@@ -11,7 +11,7 @@ module.exports = function initializeLogger(){
         ]
     });
 
-    global.logger = logger;
+    global.log = log;
 };
 
 
