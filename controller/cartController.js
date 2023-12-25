@@ -1,0 +1,91 @@
+// ... existing imports ...
+const CartModel = require('../models/CartModel');
+
+class CartController {
+    static async addToCart(req, res) {
+        try {
+            const { userId, productId, quantity } = req.body;
+
+            // Logic to add the product to the user's cart
+            const addedToCart = await CartModel.addToUserCart(userId, productId, quantity); // Implement this in CartModel
+
+            if (addedToCart) {
+                return res.status(200).json({ message: 'Product added to cart successfully.' });
+            } else {
+                return res.status(500).json({ error: 'Failed to add product to cart.' });
+            }
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+
+    static async updateCartProduct(req, res) {
+        try {
+            const userId = req.body.userId;
+            const productId = req.params.productId;
+            const newQuantity = req.body.quantity;
+
+            // Logic to update the quantity of a product in the user's cart
+            const updated = await CartModel.updateCartProduct(userId, productId, newQuantity); // Implement this in CartModel
+
+            if (updated) {
+                return res.status(200).json({ message: 'Cart product quantity updated successfully.' });
+            } else {
+                return res.status(500).json({ error: 'Failed to update cart product quantity.' });
+            }
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+
+    static async removeProductFromCart(req, res) {
+        try {
+            const userId = req.body.userId;
+            const productId = req.params.productId;
+
+            // Logic to remove a product from the user's cart
+            const removed = await CartModel.removeProduct(userId, productId); // Implement this in CartModel
+
+            if (removed) {
+                return res.status(200).json({ message: 'Product removed from cart successfully.' });
+            } else {
+                return res.status(500).json({ error: 'Failed to remove product from cart.' });
+            }
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+
+    static async getUserCart(req, res) {
+        try {
+            const userId = req.body.userId;
+
+            // Logic to fetch the user's cart
+            const cartItems = await CartModel.getUserCartItems(userId); // Implement this in CartModel
+
+            return res.status(200).json({ cartItems });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+
+    static async getCartItemCount(req, res) {
+        try {
+            const userId = req.body.userId;
+
+            // Logic to fetch the number of items in the user's cart
+            const itemCount = await CartModel.getCartItemsCount(userId); // Implement this in CartModel
+
+            return res.status(200).json({ itemCount });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+}
+
+module.exports = CartController;

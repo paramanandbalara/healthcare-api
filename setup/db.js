@@ -13,7 +13,7 @@ module.exports = async function configureDatabaseConnections(env) {
         password: process.env.dbPassword,
         database: process.env.dbName,
         waitForConnections: true,
-        connectionLimit: env === 'production' ? 2 : 1,
+        connectionLimit: process.env.env === 'production' ? 2 : 1,
         queueLimit: 0
     };
 
@@ -29,7 +29,7 @@ module.exports = async function configureDatabaseConnections(env) {
     }
 
     // If in production environment, configure database credentials for reading
-    if (env === 'production') {
+    if (process.env.env === 'production') {
         writeDbCredentials.host = process.env.metaDbReadHost;
         writeDbCredentials.connectionLimit = 2;
     }
@@ -57,6 +57,6 @@ module.exports = async function configureDatabaseConnections(env) {
         value: writeDb,
         configurable: false,
         enumerable: true,
-        writable: false
+        writable: true
     });
 };

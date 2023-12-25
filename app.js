@@ -2,6 +2,10 @@ const express = require('express');
 
 const bootstrap = require('./setup/bootstrap');
 const app = express();
+const routes = require('./routes');
+
+app.use(routes);
+
 bootstrap(app).then(() => {
     setupApp();
 });
