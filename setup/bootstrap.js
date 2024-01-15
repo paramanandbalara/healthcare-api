@@ -1,6 +1,8 @@
 'use strict';
 
 const log = require('morgan');
+const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const initializeLogger = require('./logger');
@@ -22,4 +24,6 @@ module.exports = async (app) => {
 
     app.use(bodyParser.json({ limit: '10mb' }));
     app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+
+    app.use(express.static(path.join(__dirname, 'public')));
 };
