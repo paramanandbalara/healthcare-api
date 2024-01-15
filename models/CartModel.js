@@ -30,7 +30,7 @@ class CartModel {
         try {
             // Update the quantity of the specified product in the user's cart
             const updateQuery = 'UPDATE user_cart SET quantity = ? WHERE user_id = ? AND product_id = ?';
-            const result = await writeDb.query(updateQuery, [newQuantity, userId, productId]);
+            const [result] = await writeDb.query(updateQuery, [newQuantity, userId, productId]);
 
             if (result.affectedRows > 0) {
                 return true; // Product quantity updated successfully
@@ -47,7 +47,7 @@ class CartModel {
         try {
             // Remove the specified product from the user's cart
             const deleteQuery = 'DELETE FROM user_cart WHERE user_id = ? AND product_id = ?';
-            const result = await writeDb.query(deleteQuery, [userId, productId]);
+            const [result] = await writeDb.query(deleteQuery, [userId, productId]);
 
             if (result.affectedRows > 0) {
                 return true; // Product removed from cart successfully
@@ -77,7 +77,7 @@ class CartModel {
         try {
             // Fetch the count of items in the user's cart
             const query = 'SELECT SUM(quantity) AS item_count FROM user_cart WHERE user_id = ?';
-            const result = await readDb.query(query, [userId]);
+            const [result] = await readDb.query(query, [userId]);
 
             return result[0].item_count || 0;
         } catch (error) {

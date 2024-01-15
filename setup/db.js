@@ -13,7 +13,7 @@ module.exports = async function configureDatabaseConnections(env) {
         password: process.env.dbPassword,
         database: process.env.dbName,
         waitForConnections: true,
-        connectionLimit: process.env.env === 'production' ? 2 : 1,
+        connectionLimit: 5,
         queueLimit: 0
     };
 

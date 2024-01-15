@@ -87,7 +87,7 @@ class OrderModel {
 
                         const updateItemQuery = 'UPDATE order_details SET quantity = ? WHERE order_id = ? AND product_id = ?';
                         const updateItemValues = [quantity, orderId, productId];
-                        const result = await writeDb.query(updateItemQuery, updateItemValues);
+                        const [result] = await writeDb.query(updateItemQuery, updateItemValues);
 
                         if (result.affectedRows === 0) {
                             updateItemsSuccess = false;
@@ -108,7 +108,7 @@ class OrderModel {
 
             const updateQuery = `UPDATE orders SET ${updates.join(', ')} WHERE id = ?`;
             const updateValues = [...values, orderId];
-            const result = await writeDb.query(updateQuery, updateValues);
+            const [result] = await writeDb.query(updateQuery, updateValues);
 
             return result.affectedRows > 0 && updateItemsSuccess;
         } catch (error) {
@@ -122,7 +122,7 @@ class OrderModel {
             const cancelQuery = 'UPDATE orders SET status = ? WHERE id = ?';
             const cancelValues = ['cancelled', orderId];
 
-            const result = await writeDb.query(cancelQuery, cancelValues);
+            const [result] = await writeDb.query(cancelQuery, cancelValues);
 
             return result.affectedRows > 0;
         } catch (error) {
