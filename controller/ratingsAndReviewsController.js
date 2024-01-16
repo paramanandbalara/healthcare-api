@@ -17,6 +17,8 @@ class ratingsAndReviewsController {
   static async getReviewsByProduct(req, res) {
     try {
       const product = req.params.id;
+      const page = req.query.page;
+      const limit = req.query.limit;
       const reviews = await ratingsAndReviewsModel.getAllReviewsByProduct(product);
       console.log(reviews)
       return res.status(200).json(reviews);
