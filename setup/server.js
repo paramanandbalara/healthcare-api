@@ -9,6 +9,7 @@ module.exports = function createHttpServer(app, onServerClose) {
     }
 
     const port = normalizePort(process.env.PORT || '3000');
+    console.log('Available port : ',port)
     app.set('port', port);
 
     const server = http.createServer(app);
