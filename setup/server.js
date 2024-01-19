@@ -8,7 +8,7 @@ module.exports = function createHttpServer(app, onServerClose) {
         throw new Error('onServerClose must be a function');
     }
 
-    const port = normalizePort(process.env.PORT || '3000');
+    const port = normalizePort(process.env.PORT || '3001');
     console.log('Available port : ',port)
     app.set('port', port);
 
