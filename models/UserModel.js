@@ -26,6 +26,7 @@ class UserModel {
 	}
 	static async saveOTP(phone_number, otp) {
 		try {
+			console.log(phone_number,otp)
 			// Implement your database query to save OTP for the phoneNumber
 			const userExists = await readDb.query('SELECT * FROM users WHERE phone_number = ?;', [phone_number]);
 
@@ -192,7 +193,7 @@ class UserModel {
 	static async validateOTP(phone_number, otpEntered) {
 		try {
 			// Retrieve the stored OTP for the given phone number from the database or temporary storage
-			const [storedOTP] = await readDb.query('SELECT otp FROM users WHERE phone_number = ?', phone_number); // Implement this function
+			const [storedOTP] = await readDb.query('SELECT otp FROM users WHERE phone_number = ?', [phone_number]); // Implement this function
 
 			if (!storedOTP.length) {
 				return false; // OTP not found for the phone number

@@ -1,10 +1,11 @@
 // Import necessary modules or dependencies
 const UserModel = require('../models/UserModel');
+const notifications = require('../modules/notification');
 
 class AuthController {
     static async initiateLogin(req, res) {
         try {
-            const phone_number = req.body;
+            const { phone_number } = req.body;
 
             if(!phone_number){
                 res.status(500).json({error:'Enter phone number.'})
@@ -17,6 +18,8 @@ class AuthController {
             
             // Save OTP to the database or temporary storage associated with the phone number
             const otp_saved = await UserModel.saveOTP(phone_number, otp); // Implement function to save OTP
+
+            const notify = await notifications.sendSMS(otp,phone_number);
 
             console.log(otp_saved)
             // Send OTP via SMS
@@ -41,7 +44,7 @@ class AuthController {
             }
 
             // If OTP is valid, perform login operations (grant access to the user)
-            const user = await UserModel.getUserByPhoneNumber(phoneNumber); // Fetch user details
+            const user = await UserModel.getUserByPhoneNumber(phone_number); // Fetch user details
 
             // Example: Generate JWT token for user session
             // const token = generateToken(user.id); // Implement token generation

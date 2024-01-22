@@ -1,22 +1,35 @@
 class ratingsAndReviewsModel {
+    static async addRatingsAndReviewByProduct(product_id,rating,review,user_id) {
+        try {
+            const query = 'INSERT INTO rating_review (product_id,rating,review,user_id) VALUES (?, ?, ?, ?);';
+            const [ratings] = await writeDb.query(query, [product_id,rating,review,user_id]);
+            return ratings;
+        } catch (error) {
+            console.log(error)
+            throw new Error('Error adding review.');
+        }
+    }
     static async getAllRatingsByProduct(productId) {
         try {
-          const query = 'SELECT ratings FROM rating_reviews WHERE product_id = ?';
-          const [ratings] = await readDb.query(query,[productId]);
-          return ratings;
+            const query = 'SELECT rating FROM rating_review WHERE product_id = ?';
+            const [ratings] = await readDb.query(query, [productId]);
+            return ratings;
         } catch (error) {
-          throw new Error('Error fetching products.');
+            throw new Error('Error fetching rating.');
         }
-      }
-    static async getAllReviewsByProduct(productId) {
+    }
+    static async getAllReviewsByProduct(productId, page, limit) {
         try {
-          const query = 'SELECT * FROM rating_reviews WHERE product_id = ?';
-          const [reviews] = await readDb.query(query,[productId]);
-          return reviews;
+            const offset = (page - 1) * limit;
+            const count_limit = Number(limit);
+            const query = `SELECT rr.review as review, rr.rating as rating, rr.created as created, u.name as user FROM rating_review as rr LEFT JOIN users as u on rr.user_id = u.id WHERE product_id = ? LIMIT ? OFFSET ?`;
+            const [reviews] = await readDb.query(query, [productId, count_limit, offset]);
+            return reviews;
         } catch (error) {
-          throw new Error('Error fetching products.');
+            console.log(error)
+            throw new Error('Error fetching reviews.');
         }
-      }
+    }
 }
 
 module.exports = ratingsAndReviewsModel

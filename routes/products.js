@@ -7,13 +7,16 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 
-const multerStorage = multer.diskStorage({
-    destination: os.tmpdir() + '/homeopatha',
-    filename: function (req, file, cb) {
-        let name = Date.now() + '-' + file.originalname;
-        cb(null, name);
-    },
-});
+// const multerStorage = multer.diskStorage({
+//     destination: os.tmpdir() + '/homeopatha',
+//     filename: function (req, file, cb) {
+//         console.log(file,'file')
+//         let name = Date.now() + '-' + file.originalname;
+//         cb(null, name);
+//     },
+// });
+
+const multerStorage = multer.memoryStorage();
 
 const upload = multer({
     storage: multerStorage,

@@ -30,6 +30,15 @@ class ProductModel {
       throw new Error('Error fetching product.');
     }
   }
+  static async getProductBySKU(productSku) {
+    try {
+      const query = 'SELECT * FROM products WHERE sku = ?';
+      const [product] = await readDb.query(query, [productSku]);
+      return product;
+    } catch (error) {
+      throw new Error('Error fetching product.');
+    }
+  }
 
   static async addProduct(productData) {
     try {
@@ -40,12 +49,13 @@ class ProductModel {
         price,
         discount,
         availability,
-        category
+        category,
+        sku
         // thumbnail,
       } = productData;
 
       const query =
-        'INSERT INTO products (product_name, description, manufacturer, price, discount, availability, category) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        'INSERT INTO products (product_name, description, manufacturer, price, discount, availability, category, sku) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
       const values = [
         product_name,
         description,
@@ -53,7 +63,8 @@ class ProductModel {
         price,
         discount,
         availability || 1, // Default to 1 if availability is not provided
-        category
+        category,
+        sku
         // thumbnail,
       ];
 

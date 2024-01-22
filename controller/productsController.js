@@ -1,13 +1,17 @@
 const ProductModel = require('../models/ProductModel');
 const randomstring = require('randomstring');
-const S3_MODULE = require('../modules/s3_connect')
+const S3_MODULE = require('../modules/s3_connect');
+const path = require('path');
+const fs = require('fs');
+const { promisify } = require('util');
+const writeFileAsync = promisify(fs.writeFile);
 
 class ProductsController {
   static async getAllProducts(req, res) {
     try {
       const products = await ProductModel.getAllProducts();
       const updated = await Promise.all(products.map(getThumbnails))
-      console.log(updated)
+      // console.log(updated)
       return res.status(200).json(updated);
     } catch (error) {
       console.error(error);
@@ -19,7 +23,6 @@ class ProductsController {
       const category = req.params.id;
       const products = await ProductModel.getAllProductsByCategory(category);
       const updated = await Promise.all(products.map(getThumbnails))
-      console.log(updated)
       return res.status(200).json(updated);
     } catch (error) {
       console.error(error);
@@ -35,13 +38,14 @@ class ProductsController {
       if (!product) {
         return res.status(404).json({ error: 'Product not found.' });
       }
-      const S3 = new S3_MODULE();
-      const files_path = `products/${product.id}`
-      const files_list = await S3.filesList(files_path);
-      const image_name_list = await files_list.filter(e=>!e.includes('thumbnail'));
-      const product_images = await Promise.all(image_name_list.map(e=>getProductImages(product.id,e)));
-      const updated = {...product,images:product_images}
-      console.log(updated)
+      const localProductImagesPath = path.join(__dirname, '..', '..', 'homoeopatha-images', 'products', String(productId));
+
+      // Get the list of image names (excluding thumbnails)
+      const imageNames = fs.readdirSync(localProductImagesPath).filter(e => !e.includes('thumbnail'));
+
+      // Get the download links for each image
+      const productImages = await Promise.all(imageNames.map(imageName => getProductImages(productId, imageName)));
+      const updated = { ...product, images: productImages }
       return res.status(200).json(updated);
     } catch (error) {
       console.error(error);
@@ -54,17 +58,28 @@ class ProductsController {
     const productImages = req.files;
     // console.log(productImages,'add prod')
     try {
+      const sku = await getSku(productData.product_name);
+      productData['sku'] = sku;
+      // return
       const result = await ProductModel.addProduct(productData);
 
-      if(!!result){
-        await productImages.forEach((file) => {
-          const S3 = new S3_MODULE();
-          // const uploadExt = path.extname(file.originalname);
-          const remotePath = `products/${result}/${file.originalname}`;
-          S3.fileUpload(file, remotePath);
-        });
+      if (!!result) {
+        const productId = result; // Assuming result is the inserted product ID
+
+        // Create a directory for the product's images if it doesn't exist
+        const productImagesPath = path.join(__dirname, '..', '..', 'homoeopatha-images', 'products', String(productId));
+        if (!fs.existsSync(productImagesPath)) {
+          fs.mkdirSync(productImagesPath);
+        }
+
+        // Iterate through the uploaded files and save them locally
+        await Promise.all(productImages.map(async (file) => {
+          const filePath = path.join(productImagesPath, file.originalname);
+          console.log(filePath)
+          await writeFileAsync(filePath, file.buffer);
+        }));
       }
-      console.log(result,'insertId');
+      // console.log(result,'insertId');
       return res.status(201).json({ message: 'Product added successfully.' });
     } catch (error) {
       console.error(error);
@@ -76,20 +91,23 @@ class ProductsController {
     const productId = req.params.id;
     const updatedProductData = req.body;
     const productImages = req.files;
-    console.log(productImages,updatedProductData,'update prod')
 
     try {
       const result = await ProductModel.updateProduct(productId, updatedProductData);
       if (!result) {
         return res.status(404).json({ error: 'Product not found.' });
       }
-      if(productImages.length){
-        await productImages.forEach((file) => {
-          const S3 = new S3_MODULE();
-          // const uploadExt = path.extname(file.originalname);
-          const remotePath = `products/${productId}/${file.originalname}`;
-          S3.fileUpload(file, remotePath);
-        });
+      if (productImages.length) {
+        const productImagesPath = path.join(__dirname, '..', '..', 'homoeopatha-images', 'products', String(productId));
+        if (!fs.existsSync(productImagesPath)) {
+          fs.mkdirSync(productImagesPath);
+        }
+
+        // Iterate through the uploaded files and save them locally
+        await Promise.all(productImages.map(async (file) => {
+          const filePath = path.join(productImagesPath, file.originalname);
+          await writeFileAsync(filePath, file.buffer);
+        }));
       }
       return res.status(200).json({ message: 'Product updated successfully.' });
     } catch (error) {
@@ -114,97 +132,62 @@ class ProductsController {
       return res.status(500).json({ error: 'Internal server error.' });
     }
   }
-
-  // static async addProductImage(req, res) {
-  //   const productId = req.params.id;
-  //   const base64Images = req.body.images;
-  //   try {
-  //     const result = await ProductModel.addProductImage(productId, base64Images);
-  //     return res.status(201).json({ message: 'Image added to product successfully.' });
-  //   } catch (error) {
-  //     console.error(error);
-  //     return res.status(500).json({ error: 'Internal server error.' });
-  //   }
-  // }
-
-  // static async deleteProductImage(req, res) {
-  //   const imageId = req.params.imageId;
-  //   try {
-  //     const result = await ProductModel.deleteProductImage(imageId);
-  //     if (!result) {
-  //       return res.status(404).json({ error: 'Image not found.' });
-  //     }
-  //     return res.status(200).json({ message: 'Product image deleted successfully.' });
-  //   } catch (error) {
-  //     console.error(error);
-  //     return res.status(500).json({ error: 'Internal server error.' });
-  //   }
-  // }
-  // static async getThumbnailByProductId(req, res) {
-  //   const productId = req.params.id;
-  //   console.log(productId)
-  //   try {
-
-  //     const S3 = new S3_MODULE();
-  //     const files_path = `products/${productId}`
-  //     const files_list = await S3.filesList(files_path);
-  //     const thumbnail_name = await files_list.filter(e=>e.includes('thumbnail'))[0];
-  //     const thumbnail_path = `products/${productId}/${thumbnail_name}`
-  //     const thumbnail_link = await S3.getDownloadLink(thumbnail_path);
-  //     // const result = await ProductModel.deleteProductImage(imageId);
-  //     if (!thumbnail_link) {
-  //       return res.status(404).json({ error: 'Image not found.' });
-  //     }
-  //     return res.status(200).json({ data: thumbnail_link });
-  //   } catch (error) {
-  //     console.error(error);
-  //     return res.status(500).json({ error: 'Internal server error.' });
-  //   }
-  // }
 }
 
-async function getThumbnails(product){
+async function getThumbnails(product) {
   try {
+    const localProductImagesPath = path.join(__dirname, '..', '..', 'homoeopatha-images', 'products', String(product.id));
 
-    const S3 = new S3_MODULE();
-    const files_path = `products/${product.id}`
-    const files_list = await S3.filesList(files_path);
-    if(!files_list.length)return product
-    const thumbnail_name = await files_list.filter(e=>e.includes('thumbnail'))[0];
-    const thumbnail_path = `products/${product.id}/${thumbnail_name}`
-    const thumbnail_link = await S3.getDownloadLink(thumbnail_path);
-    product['thumbnail'] = thumbnail_link;
-    console.log(thumbnail_link,'1')
+    // Get the list of image names (excluding thumbnails)
+    const imageNames = fs.readdirSync(localProductImagesPath).filter(e => e.includes('thumbnail'));
+    if (!imageNames.length) {
+      return product
+    }
+    const imageBuffer = fs.readFileSync(path.join(localProductImagesPath, imageNames[0]));
+    const base64Image = imageBuffer.toString('base64');
+    product['thumbnail'] = base64Image;
     return product
 
   } catch (error) {
     console.error(error)
   }
 }
-async function getProductImages(productId,image_name){
+async function getProductImages(productId, image_name) {
   try {
+    const localProductImagesPath = path.join(__dirname, '..', '..', 'homoeopatha-images', 'products', String(productId));
 
-    const S3 = new S3_MODULE();
-    // const files_path = `products/${product.id}`
-    // const files_list = await S3.filesList(files_path);
-    // const image_name_list = await files_list.filter(e=>!e.includes('thumbnail'));
-    const image_path = `products/${productId}/${image_name}`
-    const image_link = await S3.getDownloadLink(image_path);
-    // product['thumbnail'] = thumbnail_link;
-    console.log(image_link,image_name,'1')
-    return image_link
+    const imageBuffer = fs.readFileSync(path.join(localProductImagesPath, image_name));
+    const base64Image = imageBuffer.toString('base64');
+    const imageData = {
+      name: image_name,
+      data: base64Image,
+    };
+    return imageData;
 
   } catch (error) {
     console.error(error)
   }
 }
 
-function getSku() {
-  let sku = randomstring.generate({
-      length: 5,
-      charset: 'numeric'
+async function getSku(productName) {
+  let sku_num = randomstring.generate({
+    length: 5,
+    charset: 'numeric'
   });
-  return `HOMEO${sku}`
+  // Remove spaces and convert to uppercase
+  const cleanedProductName = productName.replace(/\s/g, '').toUpperCase();
+
+  // Remove spaces and convert to uppercase
+  // const cleanedProductCategory = productCategory.replace(/\s/g, '').toUpperCase();
+
+  // Combine components to create the SKU
+  const sku = `HOMOEO${cleanedProductName.substring(0, 3)}${sku_num}`;
+  const checkSku = await ProductModel.getProductBySKU(sku);
+  if (checkSku.length) {
+    getSku(productName)
+  }
+
+  return sku
 }
 
 module.exports = ProductsController;

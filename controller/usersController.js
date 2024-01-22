@@ -1,5 +1,6 @@
 // Import necessary modules or dependencies
 const UserModel = require('../models/UserModel');
+const notifications = require('../modules/notification');
 // Import any helper functions or libraries needed
 
 class UsersController {
@@ -18,6 +19,8 @@ class UsersController {
 			}
 			// Save the OTP to the database (using your model function)
 			const otpSaved = await UserModel.saveOTP(phone_number, otp); // Implement this in the UserModel
+
+            const notify = await notifications.sendSMS(otp,phone_number);
 
 			// Send OTP to the user via SMS (You'll need a service/API for sending SMS)
 

@@ -6,5 +6,6 @@ const ratingsAndReviewsController = require('../controller/ratingsAndReviewsCont
 
 router.get('/rating/:id', ratingsAndReviewsController.getRatingByProduct);
 router.get('/reviews/:id', ratingsAndReviewsController.getReviewsByProduct);
+router.post('/reviews/add', ratingsAndReviewsController.addReviewsByProduct);
 
 module.exports = router;
