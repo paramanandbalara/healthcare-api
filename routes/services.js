@@ -7,18 +7,17 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 
-const multerStorage = multer.diskStorage({
-    destination: os.tmpdir() + '/homeopatha',
-    filename: function (req, file, cb) {
-        console.log(file,'file')
-        let name = Date.now() + '-' + file.originalname;
-        cb(null, name);
-    },
-});
+const multerStorage = multer.memoryStorage();
 
 const upload = multer({
     storage: multerStorage,
 });
+
+
+router.get('/services', servicesController.getAllServices);
+// router.get('/service/:id', servicesController.getServiceById);
+router.post('/services', upload.array('files'), servicesController.addService);
+router.put('/services/:id', upload.array('files'), servicesController.updateService);
 
 function cleanupTemporaryFiles() {
     fs.readdir(temporaryDirectory, (err, files) => {

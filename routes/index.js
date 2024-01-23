@@ -7,6 +7,7 @@ const cart = require('./cart');
 // const booking = require('./booking');
 const orders = require('./orders');
 const products = require('./products');
+const services = require('./services');
 const rating_reviews = require('./rating_reviews');
 
 router.use(auth);
@@ -14,6 +15,7 @@ router.use(users);
 router.use(cart);
 router.use(orders);
 router.use(products);
+router.use(services);
 router.use(rating_reviews);
 
 module.exports = router;

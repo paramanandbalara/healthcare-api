@@ -19,7 +19,7 @@ class AuthController {
             // Save OTP to the database or temporary storage associated with the phone number
             const otp_saved = await UserModel.saveOTP(phone_number, otp); // Implement function to save OTP
 
-            const notify = await notifications.sendSMS(otp,phone_number);
+            await notifications.sendSMS(otp,phone_number);
 
             console.log(otp_saved)
             // Send OTP via SMS

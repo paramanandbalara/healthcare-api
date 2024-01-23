@@ -20,7 +20,7 @@ class UsersController {
 			// Save the OTP to the database (using your model function)
 			const otpSaved = await UserModel.saveOTP(phone_number, otp); // Implement this in the UserModel
 
-            const notify = await notifications.sendSMS(otp,phone_number);
+            await notifications.sendSMS(otp,phone_number);
 
 			// Send OTP to the user via SMS (You'll need a service/API for sending SMS)
 
