@@ -8,6 +8,7 @@ class ProductModel {
       const [products] = await readDb.query(query);
       return products;
     } catch (error) {
+			console.error(error);
       throw new Error('Error fetching products.');
     }
   }
@@ -17,6 +18,7 @@ class ProductModel {
       const [products] = await readDb.query(query,[category]);
       return products;
     } catch (error) {
+			console.error(error);
       throw new Error('Error fetching products.');
     }
   }
@@ -27,6 +29,7 @@ class ProductModel {
       const [product] = await readDb.query(query, [productId]);
       return product[0];
     } catch (error) {
+			console.error(error);
       throw new Error('Error fetching product.');
     }
   }
@@ -36,6 +39,7 @@ class ProductModel {
       const [product] = await readDb.query(query, [productSku]);
       return product;
     } catch (error) {
+			console.error(error);
       throw new Error('Error fetching product.');
     }
   }
@@ -71,6 +75,7 @@ class ProductModel {
       const [result] = await writeDb.query(query, values);
       return result.affectedRows > 0 ? result.insertId : false;
     } catch (error) {
+			console.error(error);
       throw new Error('Error adding product.');
     }
   }
@@ -103,6 +108,7 @@ class ProductModel {
       const [result] = await writeDb.query(query, values);
       return result.affectedRows > 0;
     } catch (error) {
+			console.error(error);
       throw new Error('Error updating product.');
     }
   }
@@ -113,6 +119,7 @@ class ProductModel {
       const [result] = await writeDb.query(query, [productId]);
       return result.affectedRows > 0;
     } catch (error) {
+			console.error(error);
       throw new Error('Error deleting product.');
     }
   }

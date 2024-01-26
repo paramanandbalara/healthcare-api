@@ -5,6 +5,7 @@ class ServiceModel {
             const [services] = await readDb.query(query);
             return services;
         } catch (error) {
+            console.log(error)
             throw new Error('Error fetching services.');
         }
     }
@@ -26,6 +27,7 @@ class ServiceModel {
             const [result] = await writeDb.query(query, values);
             return result.affectedRows > 0 ? result.insertId : false;
         } catch (error) {
+            console.log(error)
             throw new Error('Error adding service.');
         }
     }
@@ -48,6 +50,7 @@ class ServiceModel {
             const [result] = await writeDb.query(query, values);
             return result.affectedRows > 0;
         } catch (error) {
+            console.log(error)
             throw new Error('Error updating service.');
         }
     }
@@ -57,6 +60,7 @@ class ServiceModel {
             const [result] = await writeDb.query(query, [serviceId]);
             return result.affectedRows > 0;
         } catch (error) {
+            console.log(error)
             throw new Error('Error deleting service.');
         }
     }

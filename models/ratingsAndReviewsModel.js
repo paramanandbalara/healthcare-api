@@ -15,6 +15,7 @@ class ratingsAndReviewsModel {
             const [ratings] = await readDb.query(query, [productId]);
             return ratings;
         } catch (error) {
+            console.log(error)
             throw new Error('Error fetching rating.');
         }
     }
