@@ -15,9 +15,17 @@ const upload = multer({
 
 
 router.get('/services', servicesController.getAllServices);
-// router.get('/service/:id', servicesController.getServiceById);
+router.get('/services/:id', servicesController.getServiceById);
 router.post('/services', upload.array('files'), servicesController.addService);
 router.put('/services/:id', upload.array('files'), servicesController.updateService);
+
+//service request routes
+router.post('/service-request/add', servicesController.addServiceRequest);
+router.get('/service-request/get', servicesController.getServiceRequests);
+router.get('/service-request/list', servicesController.getServiceRequestsByUser);
+// router.get('/service-request/details', servicesController.getServiceRequestRemarks);
+router.get('/service-request/remarks', servicesController.getServiceRequestRemarks);
+router.post('/service-request/remarks', servicesController.addServiceRequestRemark);
 
 function cleanupTemporaryFiles() {
     fs.readdir(temporaryDirectory, (err, files) => {

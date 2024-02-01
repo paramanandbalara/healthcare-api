@@ -16,6 +16,29 @@ class ServiceController {
             return res.status(500).json({ error: 'Internal server error.' });
         }
     }
+
+    static async getServiceById(req, res) {
+		const serviceId = req.params.id;
+		try {
+			const services = await ServiceModel.getServiceById(serviceId);
+
+			if (!services.length) {
+				return res.status(404).json({ error: 'Service not found.' });
+			}
+			// const localServiceImagesPath = path.join(__dirname, '..', '..', 'homoeopatha-images', 'services', String(serviceId));
+
+			// Get the list of image names (excluding thumbnails)
+			// const imageNames = fs.readdirSync(localServiceImagesPath).filter(e => e.includes('thumbnail'));
+
+			// Get the download links for each image
+			// const serviceImages = await Promise.all(imageNames.map(imageName => getServiceImages(serviceId, imageName)));
+			const updated = await Promise.all(services.map(getThumbnails))
+			return res.status(200).json(updated);
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({ error: 'Internal server error.' });
+		}
+	}
     static async addService(req, res) {
         const serviceData = req.body;
         const serviceImages = req.files;
@@ -101,6 +124,67 @@ class ServiceController {
             });
 
             return res.status(200).json({ message: 'Service deleted successfully.' });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+
+    //service request functions
+
+    static async addServiceRequest(req, res){
+        const serviceRequestData = req.body;
+        try {
+
+            const result = await ServiceModel.addServiceRequest(serviceRequestData);
+            
+            return res.status(201).json({ message: 'Service request added successfully.' });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+    static async getServiceRequests(req, res) {
+        try {
+            const service_requests = await ServiceModel.getServiceRequests();
+            // console.log(updated)
+            return res.status(200).json(service_requests);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+    static async getServiceRequestsByUser(req, res) {
+        try {
+            const { userId } = req.query;
+            const service_requests = await ServiceModel.getServiceRequestsByUser(userId);
+            // console.log(updated)
+            return res.status(200).json(service_requests);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+
+    //remarks
+    static async addServiceRequestRemark(req, res){
+        const serviceRequestData = req.body;
+        try {
+
+            const result = await ServiceModel.addServiceRequestRemark(serviceRequestData);
+            
+            return res.status(201).json({ message: 'Remark added successfully.' });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
+    static async getServiceRequestRemarks(req, res) {
+        try {
+            const service_request_id = req.query.sr
+            const service_requests = await ServiceModel.getServiceRequestRemarks(service_request_id);
+            // console.log(updated)
+            return res.status(200).json(service_requests);
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Internal server error.' });

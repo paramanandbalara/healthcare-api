@@ -25,7 +25,7 @@ class ProductModel {
 
   static async getProductById(productId) {
     try {
-      const query = 'SELECT * FROM products WHERE id = ?';
+      const query = 'SELECT p.*, AVG(rr.rating) AS rating FROM products p JOIN rating_review rr ON rr.product_id = p.id WHERE p.id = ?';
       const [product] = await readDb.query(query, [productId]);
       return product[0];
     } catch (error) {

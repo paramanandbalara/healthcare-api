@@ -1,129 +1,133 @@
-// ... existing imports ...
-const OrderModel = require('../models/OrderModel');
+// controllers/orderController.js
+const Order = require('../models/OrderModel');
+const Cart = require('../models/CartModel');
+const path = require('path');
+const fs = require('fs');
 
 class OrdersController {
-    static async placeOrder(req, res) {
+    static async createOrder(req, res) {
+        const { userId, customer_details_id } = req.body;
+
         try {
-            const { userId, products, shippingAddress, paymentMethod, additionalNotes } = req.body;
-
-            // Calculate total amount based on the products
-            const totalAmount = calculateTotalAmount(products); // Implement your logic to calculate total amount
-
-            // Create a payment intent with Stripe
-            const paymentIntent = await stripe.paymentIntents.create({
-                amount: totalAmount, // Stripe expects the amount in cents
-                currency: 'inr', // Change to your desired currency
-                payment_method_types: ['card'], // Payment method types allowed
-            });
-
-            // Logic to place an order
-            const orderPlaced = await OrderModel.createOrder({
-                userId,
-                products,
-                shippingAddress,
-                paymentMethod,
-                additionalNotes,
-                totalAmount, // Include total amount in the order details
-                paymentIntentId: paymentIntent.id, // Save the payment intent ID in your order details
-            }); // Implement this in OrderModel
-
-            if (orderPlaced) {
-                return res.status(200).json({ message: 'Order placed successfully.' });
-            } else {
-                return res.status(500).json({ error: 'Failed to place order.' });
+            const cartItems = await Cart.getUserCartItems(userId);
+            
+            if (!cartItems?.length) {
+                return res.status(500).json({ success: false, message: 'Failed to retrieve cart items.' });
             }
+
+            const orderCreationResult = await Order.createOrder(userId, cartItems, customer_details_id);
+
+            if (!orderCreationResult.success) {
+                return res.status(500).json({ success: false, message: 'Failed to create order.' });
+            }
+
+            return res.json({ success: true, orderId: orderCreationResult.orderId, message: 'Order created successfully.' });
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            console.error('Error creating order:', error);
+            return res.status(500).json({ success: false, message: 'Internal Server Error.' });
         }
     }
 
-    static async getUserOrders(req, res) {
+    static async updateStatus(req, res) {
+        
         try {
-            const userId = req.params.userId;
+            const { order_id, status } = req.body;
+            const statusUpdate = await Order.updateOrderStatus(order_id, status);
 
-            // Logic to fetch all orders for a user
-            const userOrders = await OrderModel.getUserOrders(userId); // Implement this in OrderModel
+            // if (!orderHistoryResult.length) {
+            //     return res.status(500).json({ success: false, message: 'Failed to retrieve order history.' });
+            // }
 
-            return res.status(200).json({ userOrders });
+            return res.json({ success: true, data: statusUpdate });
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            console.error('Error updating status:', error);
+            return res.status(500).json({ success: false, message: 'Internal Server Error.' });
         }
     }
+    static async getOrderHistory(req, res) {
+        const { userId } = req.query;
 
-    static async getSingleOrder(req, res) {
         try {
-            const orderId = req.params.orderId;
+            const orderHistoryResult = await Order.getOrderHistory(userId);
 
-            // Logic to fetch a single order by its ID
-            const order = await OrderModel.getSingleOrderById(orderId); // Implement this in OrderModel
+            // if (!orderHistoryResult.length) {
+            //     return res.status(500).json({ success: false, message: 'Failed to retrieve order history.' });
+            // }
 
-            if (order) {
-                return res.status(200).json({ order });
-            } else {
-                return res.status(404).json({ error: 'Order not found.' });
-            }
+            return res.json({ success: true, data: orderHistoryResult });
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            console.error('Error fetching order history:', error);
+            return res.status(500).json({ success: false, message: 'Internal Server Error.' });
         }
     }
+    static async getAllOrderHistory(req, res) {
+        // const { userId } = req.query;
 
-    static async updateOrder(req, res) {
         try {
-            const orderId = req.params.orderId;
-            const updatedInfo = req.body.updatedInfo; // This should contain the updated details
+            const orderHistoryResult = await Order.getAllOrderHistory();
+			const updated = await Promise.all(orderHistoryResult.map(async (e)=>{
+                await Promise.all(e.order_items.map(getThumbnails))
+                return e
+            }))
+            // if (!orderHistoryResult.length) {
+            //     return res.status(500).json({ success: false, message: 'Failed to retrieve order history.' });
+            // }
 
-            // Logic to update an order
-            const orderUpdated = await OrderModel.updateOrderById(orderId, updatedInfo); // Implement this in OrderModel
-
-            if (orderUpdated) {
-                return res.status(200).json({ message: 'Order updated successfully.' });
-            } else {
-                return res.status(500).json({ error: 'Failed to update order.' });
-            }
+            return res.json(updated);
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
-        }
-    }
-
-    static async cancelOrder(req, res) {
-        try {
-            const orderId = req.params.orderId;
-
-            // Logic to cancel an order
-            const orderCancelled = await OrderModel.cancelOrderById(orderId); // Implement this in OrderModel
-
-            if (orderCancelled) {
-                return res.status(200).json({ message: 'Order cancelled successfully.' });
-            } else {
-                return res.status(500).json({ error: 'Failed to cancel order.' });
-            }
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            console.error('Error fetching order history:', error);
+            return res.status(500).json({ success: false, message: 'Internal Server Error.' });
         }
     }
 
     static async getOrderDetails(req, res) {
+        const { orderId } = req.query;
+
         try {
-            const orderId = req.params.orderId;
+            const orderDetailsResult = await Order.getOrderDetails(orderId);
+			const updated = await Promise.all(orderDetailsResult.map(getThumbnails))
 
-            // Logic to fetch order details
-            const orderDetails = await OrderModel.getOrderDetailsById(orderId); // Implement this in OrderModel
-
-            if (orderDetails) {
-                return res.status(200).json({ orderDetails });
-            } else {
-                return res.status(404).json({ error: 'Order details not found.' });
+            if (!orderDetailsResult.length) {
+                return res.status(500).json({ success: false, message: 'Failed to retrieve order details.' });
             }
+
+            return res.json({ success: true, data: updated });
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            console.error('Error fetching order details:', error);
+            return res.status(500).json({ success: false, message: 'Internal Server Error.' });
         }
     }
+    static async getPurchaseDetails(req, res) {
+        const { userId, productId } = req.query;
+
+        try {
+            const purchaseDetailsResult = await Order.getPurchaseDetails(userId, productId);
+
+            return res.json(purchaseDetailsResult);
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+            return res.status(500).json({ success: false, message: 'Internal Server Error.' });
+        }
+    }
+}
+
+async function getThumbnails(product) {
+	try {
+		const localProductImagesPath = path.join(__dirname, '..', '..', 'homoeopatha-images', 'products', String(product.product_id));
+
+		// Get the list of image names (excluding thumbnails)
+		const imageNames = fs.readdirSync(localProductImagesPath).filter(e => e.includes('thumbnail'));
+		if (!imageNames.length) {
+			return product
+		}
+		const imageBuffer = fs.readFileSync(path.join(localProductImagesPath, imageNames[0]));
+		const base64Image = imageBuffer.toString('base64');
+		product['thumbnail'] = base64Image;
+		return product
+
+	} catch (error) {
+		console.error(error)
+	}
 }
 
 module.exports = OrdersController;

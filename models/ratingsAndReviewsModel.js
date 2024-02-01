@@ -23,7 +23,7 @@ class ratingsAndReviewsModel {
         try {
             const offset = (page - 1) * limit;
             const count_limit = Number(limit);
-            const query = `SELECT rr.review as review, rr.rating as rating, rr.created as created, u.name as user FROM rating_review as rr LEFT JOIN users as u on rr.user_id = u.id WHERE product_id = ? LIMIT ? OFFSET ?`;
+            const query = `SELECT rr.review as review, rr.rating as rating, rr.created as created, u.name as user FROM rating_review as rr JOIN users as u ON rr.user_id = u.id WHERE product_id = ? LIMIT ? OFFSET ?`;
             const [reviews] = await readDb.query(query, [productId, count_limit, offset]);
             return reviews;
         } catch (error) {

@@ -1,177 +1,106 @@
-// ... existing imports ...
 
-class OrderModel {
-    static async createOrder({ userId, products, shippingAddress, paymentMethod, additionalNotes, totalAmount, paymentIntentId }) {
+class Order {
+    static async createOrder(userId, cartItems, customer_details_id) {
         try {
-          // Insert order details into the database
-          const insertOrderQuery = 'INSERT INTO orders (user_id, total_amount, shipping_address, payment_method, additional_notes, payment_intent_id) VALUES (?, ?, ?, ?, ?, ?)';
-          const insertOrderValues = [userId, totalAmount, shippingAddress, paymentMethod, additionalNotes, paymentIntentId];
-          const orderResult = await writeDb.query(insertOrderQuery, insertOrderValues);
-    
-          const orderId = orderResult.insertId;
-    
-          // Insert order items into the order_details table
-          const orderDetailsInsertQuery = 'INSERT INTO order_details (order_id, product_id, quantity) VALUES ?';
-          const orderDetailsValues = products.map(product => [orderId, product.productId, product.quantity]);
-          await writeDb.query(orderDetailsInsertQuery, [orderDetailsValues]);
-    
-          return true; // Order placed successfully
-        } catch (error) {
-          console.error(error);
-          throw new Error('Error placing order.');
-        }
-      }
+            // Calculate total amount based on cart items
+            const totalAmount = await cartItems.reduce((acc, item) => acc + ((item.price - (item.price * item.discount / 100)) * item.quantity), 0).toFixed(2);
+            // Create a new order
+            const [{ insertId: orderId }] = await writeDb.query('INSERT INTO orders (user_id, total_amount, customer_details_id) VALUES (?, ?, ?)', [userId, totalAmount, customer_details_id]);
+            console.log(orderId)
 
-    static async getUserOrders(userId) {
-        try {
-            // Fetch all orders for a user
-            const query = 'SELECT * FROM orders WHERE user_id = ?';
-            const userOrders = await readDb.query(query, [userId]);
+            // Insert order items into the order_items table
+            for (const item of cartItems) {
+                const [order_details] = await writeDb.query('INSERT INTO order_items (order_id, product_id, quantity, price, discount) VALUES (?, ?, ?, ?, ?)', [orderId, item.product_id, item.quantity, item.price, item.discount]);
+                console.log(order_details)
+            }
 
-            return userOrders;
+            // Clear the user's cart after creating the order
+            await writeDb.query('DELETE FROM cart WHERE user_id = ?', [userId]);
+
+            return { success: true, orderId, message: 'Order created successfully.' };
         } catch (error) {
-            console.error(error);
-            throw new Error('Error fetching user orders.');
+            console.error('Error creating order:', error);
+            return { success: false, message: 'Failed to create order.' };
         }
     }
 
-    static async getSingleOrderById(orderId) {
+    static async getOrderHistory(userId) {
         try {
-            // Fetch a single order by its ID
-            const query = 'SELECT * FROM orders WHERE id = ?';
-            const order = await readDb.query(query, [orderId]);
-
-            return order.length ? order[0] : null;
+            const [orderHistory] = await readDb.query('SELECT * FROM orders WHERE user_id = ? ORDER BY created DESC', [userId]);
+            return orderHistory;
         } catch (error) {
-            console.error(error);
-            throw new Error('Error fetching single order.');
+            console.error('Error fetching order history:', error);
+            return { success: false, message: 'Failed to fetch order history.' };
+        }
+    }
+    static async updateOrderStatus(order_id, status) {
+        try {
+            const [status_update] = await writeDb.query('UPDATE orders SET status = ? WHERE id = ?', [status, order_id]);
+            return status_update;
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            return { success: false, message: 'Failed to update order status.' };
+        }
+    }
+    static async getAllOrderHistory() {
+        try {
+            const [orderHistory] = await readDb.query(`SELECT
+            o.id AS order_id,
+            o.total_amount,
+            o.created,
+            o.status,
+            cd.customer_name,
+            cd.customer_city,
+            cd.customer_state,
+            cd.customer_phone,
+            cd.customer_email,
+            cd.customer_pincode,
+            cd.customer_address,
+            JSON_ARRAYAGG(
+              JSON_OBJECT(
+                'product_id', p.id,
+                'product_name', p.product_name,
+                'manufacturer', p.manufacturer,
+                'price', oi.price,
+                'quantity', oi.quantity,
+                'discount', oi.discount
+              )
+            ) AS order_items
+          FROM
+            orders o
+            JOIN customer_details cd ON o.customer_details_id = cd.id
+            JOIN order_items oi ON o.id = oi.order_id
+            JOIN products p ON oi.product_id = p.id
+          GROUP BY
+            o.id
+          ORDER BY
+            o.created DESC;
+          `);
+            return orderHistory;
+        } catch (error) {
+            console.error('Error fetching order history:', error);
+            return { success: false, message: 'Failed to fetch order history.' };
         }
     }
 
-    static async updateOrderById(orderId, updatedInfo) {
+    static async getOrderDetails(orderId) {
         try {
-            const {
-                shippingAddress,
-                paymentMethod,
-                additionalNotes,
-                updatedItems // Array of updated items in the order [{ productId, quantity }, ...]
-            } = updatedInfo;
-
-            const updates = [];
-            const values = [];
-
-            if (shippingAddress) {
-                updates.push('shipping_address = ?');
-                values.push(shippingAddress);
-            }
-
-            if (paymentMethod) {
-                updates.push('payment_method = ?');
-                values.push(paymentMethod);
-            }
-
-            if (additionalNotes) {
-                updates.push('additional_notes = ?');
-                values.push(additionalNotes);
-            }
-
-            let updateItemsSuccess = true;
-
-            if (updatedItems && updatedItems.length > 0) {
-                // Transaction to update items in the order_details table
-                await writeDb.beginTransaction();
-
-                try {
-                    for (const updatedItem of updatedItems) {
-                        const { productId, quantity } = updatedItem;
-
-                        const updateItemQuery = 'UPDATE order_details SET quantity = ? WHERE order_id = ? AND product_id = ?';
-                        const updateItemValues = [quantity, orderId, productId];
-                        const [result] = await writeDb.query(updateItemQuery, updateItemValues);
-
-                        if (result.affectedRows === 0) {
-                            updateItemsSuccess = false;
-                            break;
-                        }
-                    }
-
-                    if (updateItemsSuccess) {
-                        await writeDb.commit();
-                    } else {
-                        await writeDb.rollback();
-                    }
-                } catch (error) {
-                    await writeDb.rollback();
-                    throw error;
-                }
-            }
-
-            const updateQuery = `UPDATE orders SET ${updates.join(', ')} WHERE id = ?`;
-            const updateValues = [...values, orderId];
-            const [result] = await writeDb.query(updateQuery, updateValues);
-
-            return result.affectedRows > 0 && updateItemsSuccess;
+            const [orderDetails] = await readDb.query('SELECT o.created as order_date ,oi.*,p.product_name FROM orders o JOIN order_items oi JOIN products p ON oi.product_id = p.id AND o.id = oi.order_id WHERE o.id = ?', [orderId]);
+            return orderDetails;
         } catch (error) {
-            console.error(error);
-            throw new Error('Error updating order.');
+            console.error('Error fetching order details:', error);
+            return { success: false, message: 'Failed to fetch order details.' };
         }
     }
-
-    static async cancelOrderById(orderId) {
+    static async getPurchaseDetails(userId, productId) {
         try {
-            const cancelQuery = 'UPDATE orders SET status = ? WHERE id = ?';
-            const cancelValues = ['cancelled', orderId];
-
-            const [result] = await writeDb.query(cancelQuery, cancelValues);
-
-            return result.affectedRows > 0;
+            const [purchaseDetails] = await readDb.query('SELECT * FROM orders o JOIN order_items oi ON oi.order_id = o.id WHERE o.user_id = 1 AND oi.product_id = 4', [userId, productId]);
+            return purchaseDetails;
         } catch (error) {
-            console.error(error);
-            throw new Error('Error cancelling order.');
-        }
-    }
-
-    static async getOrderDetailsById(orderId) {
-        try {
-            const orderQuery = `
-            SELECT 
-              o.id as order_id,
-              o.total_amount,
-              o.shipping_address,
-              o.payment_method,
-              o.additional_notes,
-              od.product_id,
-              od.quantity
-            FROM orders o
-            LEFT JOIN order_details od ON o.id = od.order_id
-            WHERE o.id = ?
-          `;
-
-            const orderDetails = await readDb.query(orderQuery, [orderId]);
-
-            if (orderDetails.length === 0) {
-                return null;
-            }
-
-            // Constructing the order details object
-            const orderInfo = {
-                orderId: orderDetails[0].order_id,
-                totalAmount: orderDetails[0].total_amount,
-                shippingAddress: orderDetails[0].shipping_address,
-                paymentMethod: orderDetails[0].payment_method,
-                additionalNotes: orderDetails[0].additional_notes,
-                items: orderDetails.map(item => ({
-                    productId: item.product_id,
-                    quantity: item.quantity,
-                })),
-            };
-
-            return orderInfo;
-        } catch (error) {
-            console.error(error);
-            throw new Error('Error fetching order details.');
+            console.error('Error fetching purchase details:', error);
+            return { success: false, message: 'Failed to fetch purchase details.' };
         }
     }
 }
 
-module.exports = OrderModel;
+module.exports = Order;

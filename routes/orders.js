@@ -2,16 +2,12 @@ const express = require('express');
 const router = express.Router();
 const ordersController = require('../controller/ordersController');
 
-// POST route to place an order
-router.post('/order/place', ordersController.placeOrder);
-
-// GET route to fetch all orders for a user
-router.get('/order/user/:userId', ordersController.getUserOrders);
-
-// GET route to fetch a single order by its ID
-router.get('/order/:orderId', ordersController.getSingleOrder);
-
-// PUT route to update an order
-router.put('/order/update/:orderId', ordersController.updateOrder);
+// Order routes
+router.post('/order/create', ordersController.createOrder);
+router.get('/order/history', ordersController.getOrderHistory);
+router.get('/admin/orders', ordersController.getAllOrderHistory);
+router.post('/admin/order/status', ordersController.updateStatus);
+router.get('/order/details', ordersController.getOrderDetails);
+router.get('/order/purchased', ordersController.getPurchaseDetails);
 
 module.exports = router;
