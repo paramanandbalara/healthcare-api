@@ -13,7 +13,7 @@ class ServiceController {
             return res.status(200).json(updated);
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 
@@ -36,7 +36,7 @@ class ServiceController {
 			return res.status(200).json(updated);
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
     static async addService(req, res) {
@@ -66,7 +66,7 @@ class ServiceController {
             return res.status(201).json({ message: 'Service added successfully.' });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 
@@ -96,7 +96,7 @@ class ServiceController {
             return res.status(200).json({ message: 'Service updated successfully.' });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
     static async deleteService(req, res) {
@@ -126,7 +126,7 @@ class ServiceController {
             return res.status(200).json({ message: 'Service deleted successfully.' });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 
@@ -141,7 +141,7 @@ class ServiceController {
             return res.status(201).json({ message: 'Service request added successfully.' });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
     static async getServiceRequests(req, res) {
@@ -151,7 +151,7 @@ class ServiceController {
             return res.status(200).json(service_requests);
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
     static async getServiceRequestsByUser(req, res) {
@@ -162,7 +162,7 @@ class ServiceController {
             return res.status(200).json(service_requests);
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 
@@ -176,7 +176,7 @@ class ServiceController {
             return res.status(201).json({ message: 'Remark added successfully.' });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
     static async getServiceRequestRemarks(req, res) {
@@ -187,7 +187,7 @@ class ServiceController {
             return res.status(200).json(service_requests);
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 }

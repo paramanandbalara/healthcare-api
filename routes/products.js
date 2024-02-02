@@ -30,6 +30,8 @@ router.delete('/product/:id', productsController.deleteProduct);
 // router.post('/product/images/:id', upload.array('files'), productsController.addProductImage);
 // router.delete('/product/images/:imageId', productsController.deleteProductImage);
 router.get('/product/category/:id', productsController.getAllProductsByCategory);
+router.get('/bestsellers/list', productsController.getAllProductBestseller);
+router.post('/product/bestsellers', productsController.updateProductBestseller);
 
 const temporaryDirectory = path.join(os.tmpdir(), 'homeopatha');
 

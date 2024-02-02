@@ -18,7 +18,7 @@ class CartController {
             }
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 
@@ -38,7 +38,7 @@ class CartController {
             }
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 
@@ -58,7 +58,7 @@ class CartController {
             }
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 
@@ -73,7 +73,7 @@ class CartController {
             return res.status(200).json( updated );
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
     static async getAddress(req, res) {
@@ -86,7 +86,7 @@ class CartController {
             return res.status(200).json( address );
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 
@@ -100,7 +100,7 @@ class CartController {
             return res.status(200).json(itemCount);
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 
@@ -118,7 +118,7 @@ class CartController {
             }
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
     static async updateAddress(req, res) {
@@ -135,7 +135,7 @@ class CartController {
             }
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: 'Internal server error.' });
+            return res.status(500).json({ error: 'Internal server error.' + error });
         }
     }
 }

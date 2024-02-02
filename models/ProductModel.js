@@ -22,6 +22,27 @@ class ProductModel {
       throw new Error('Error fetching products.');
     }
   }
+  static async getAllProductBestseller() {
+    try {
+      const query = `SELECT * FROM products WHERE bestseller = 1`;
+      const [products] = await readDb.query(query);
+      console.log(products)
+      return products;
+    } catch (error) {
+			console.error(error);
+      throw new Error('Error fetching products.');
+    }
+  }
+  static async updateProductBestseller(bestseller,product_id) {
+    try {
+      const query = 'UPDATE products SET bestseller = ? WHERE id = ?';
+      const [result] = await readDb.query(query,[bestseller,product_id]);
+      return result.affectedRows > 0 ? result.insertId : false;;
+    } catch (error) {
+			console.error(error);
+      throw new Error('Error fetching products.');
+    }
+  }
 
   static async getProductById(productId) {
     try {

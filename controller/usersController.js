@@ -52,7 +52,7 @@ class UsersController {
 			}
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
 
@@ -70,7 +70,7 @@ class UsersController {
 			}
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
 
@@ -89,7 +89,7 @@ class UsersController {
 			}
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
 	static async fetchUserList(req, res) {

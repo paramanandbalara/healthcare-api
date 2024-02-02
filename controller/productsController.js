@@ -15,7 +15,7 @@ class ProductsController {
 			return res.status(200).json(updated);
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
 	static async getAllProductsByCategory(req, res) {
@@ -26,7 +26,27 @@ class ProductsController {
 			return res.status(200).json(updated);
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
+		}
+	}
+	static async getAllProductBestseller(req, res) {
+		try {
+			const products = await ProductModel.getAllProductBestseller();
+			const updated = await Promise.all(products.map(getThumbnails))
+			return res.status(200).json(updated);
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({ error: 'Internal server error.' + error });
+		}
+	}
+	static async updateProductBestseller(req, res) {
+		try {
+			const { bestseller, product_id } = req.body;
+			const products = await ProductModel.updateProductBestseller(bestseller, product_id);
+			return res.status(200).json({message:'Product bestseller updated successfully.'});
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
 
@@ -49,7 +69,7 @@ class ProductsController {
 			return res.status(200).json(updated);
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
 
@@ -83,7 +103,7 @@ class ProductsController {
 			return res.status(201).json({ message: 'Product added successfully.' });
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
 
@@ -115,7 +135,7 @@ class ProductsController {
 			return res.status(200).json({ message: 'Product updated successfully.' });
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
 
@@ -146,7 +166,7 @@ class ProductsController {
 			return res.status(200).json({ message: 'Product deleted successfully.' });
 		} catch (error) {
 			console.error(error);
-			return res.status(500).json({ error: 'Internal server error.' });
+			return res.status(500).json({ error: 'Internal server error.' + error });
 		}
 	}
 }

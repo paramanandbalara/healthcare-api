@@ -11,7 +11,7 @@ class ratingsAndReviewsController {
       return res.status(200).json(final_rating);
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: 'Internal server error.' });
+      return res.status(500).json({ error: 'Internal server error.' + error });
     }
   }
   static async getRatingByProduct(req, res) {
@@ -23,7 +23,7 @@ class ratingsAndReviewsController {
       return res.status(200).json(final_rating);
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: 'Internal server error.' });
+      return res.status(500).json({ error: 'Internal server error.' + error });
     }
   }
   static async getReviewsByProduct(req, res) {
@@ -36,7 +36,7 @@ class ratingsAndReviewsController {
       return res.status(200).json(reviews);
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: 'Internal server error.' });
+      return res.status(500).json({ error: 'Internal server error.' + error });
     }
   }
 }

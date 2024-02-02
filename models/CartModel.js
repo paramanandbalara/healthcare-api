@@ -170,7 +170,6 @@ class CartModel {
             // Fetch the count of items in the user's cart
             const query = 'SELECT SUM(quantity) AS item_count FROM cart WHERE user_id = ?';
             const [result] = await readDb.query(query, [userId]);
-            console.log(result)
             return result[0].item_count || 0;
         } catch (error) {
             console.error(error);
